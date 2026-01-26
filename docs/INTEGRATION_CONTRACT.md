@@ -361,18 +361,24 @@ Emulators must document:
 
 ## Checklist for New Emulators
 
-- [ ] Canonical resource naming
-- [ ] Operation → permission mapping documented
-- [ ] Principal extraction (gRPC + HTTP)
-- [ ] Principal propagation to IAM emulator
-- [ ] Three IAM modes supported (off/permissive/strict)
-- [ ] Uses `gcp-emulator-auth` library
-- [ ] Unit tests with IAM_MODE=off
-- [ ] Integration tests with IAM emulator
-- [ ] README with IAM section
-- [ ] Permission reference table
+- [ ] Canonical resource naming (projects/{project}/...)
+- [ ] Operation → permission mapping documented in README
+- [ ] Principal extraction (gRPC `x-emulator-principal` + HTTP `X-Emulator-Principal`)
+- [ ] Principal propagation to IAM emulator via metadata
+- [ ] Three IAM modes supported: off/permissive/strict
+- [ ] Environment variables: `IAM_MODE` and `IAM_HOST`
+- [ ] Uses `gcp-emulator-auth` shared library
+- [ ] Resource normalization functions (parent vs self)
+- [ ] Permission check before each operation
+- [ ] Error responses (403 PermissionDenied, 500 Internal)
+- [ ] Unit tests with IAM_MODE=off (default behavior)
+- [ ] Integration tests with IAM emulator running
+- [ ] Integration tests for permissive vs strict modes
+- [ ] README with IAM integration section
+- [ ] Permission reference table (operation → permission → resource)
 - [ ] Docker Compose integration example
-- [ ] Backward compatible (opt-in)
+- [ ] Backward compatible (IAM_MODE=off as default)
+- [ ] Non-breaking for existing users
 
 ---
 
