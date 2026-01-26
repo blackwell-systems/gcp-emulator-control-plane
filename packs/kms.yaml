@@ -1,0 +1,56 @@
+# KMS Role Pack
+#
+# Copy these role definitions into your policy.yaml to get started with KMS.
+
+roles:
+  # Full KMS admin
+  roles/cloudkms.admin:
+    permissions:
+      - cloudkms.keyRings.create
+      - cloudkms.keyRings.get
+      - cloudkms.keyRings.list
+      - cloudkms.cryptoKeys.create
+      - cloudkms.cryptoKeys.get
+      - cloudkms.cryptoKeys.list
+      - cloudkms.cryptoKeys.update
+      - cloudkms.cryptoKeys.encrypt
+      - cloudkms.cryptoKeys.decrypt
+      - cloudkms.cryptoKeyVersions.create
+      - cloudkms.cryptoKeyVersions.destroy
+      - cloudkms.cryptoKeyVersions.get
+      - cloudkms.cryptoKeyVersions.list
+      - cloudkms.cryptoKeyVersions.update
+
+  # Encrypt and decrypt with keys
+  roles/cloudkms.cryptoKeyEncrypterDecrypter:
+    permissions:
+      - cloudkms.cryptoKeys.encrypt
+      - cloudkms.cryptoKeys.decrypt
+
+  # Encrypt only
+  roles/cloudkms.cryptoKeyEncrypter:
+    permissions:
+      - cloudkms.cryptoKeys.encrypt
+
+  # Decrypt only
+  roles/cloudkms.cryptoKeyDecrypter:
+    permissions:
+      - cloudkms.cryptoKeys.decrypt
+
+  # View metadata only (no encryption operations)
+  roles/cloudkms.viewer:
+    permissions:
+      - cloudkms.keyRings.get
+      - cloudkms.keyRings.list
+      - cloudkms.cryptoKeys.get
+      - cloudkms.cryptoKeys.list
+      - cloudkms.cryptoKeyVersions.get
+      - cloudkms.cryptoKeyVersions.list
+
+# Example bindings
+# projects:
+#   my-project:
+#     bindings:
+#       - role: roles/cloudkms.cryptoKeyEncrypterDecrypter
+#         members:
+#           - serviceAccount:app@my-project.iam.gserviceaccount.com

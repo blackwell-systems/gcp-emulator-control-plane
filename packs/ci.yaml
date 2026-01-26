@@ -1,0 +1,52 @@
+# CI/CD Role Pack
+#
+# Common patterns for CI/CD pipelines
+
+roles:
+  # CI Pipeline - limited access for automated builds
+  roles/custom.ciPipeline:
+    permissions:
+      - secretmanager.versions.access  # Read secrets
+      - cloudkms.cryptoKeys.encrypt    # Encrypt data
+      - cloudkms.cryptoKeys.decrypt    # Decrypt data
+
+  # Deployment Bot - can manage resources but not read secrets
+  roles/custom.deploymentBot:
+    permissions:
+      - secretmanager.secrets.create
+      - secretmanager.secrets.update
+      - secretmanager.versions.add
+      - cloudkms.keyRings.create
+      - cloudkms.cryptoKeys.create
+
+  # Testing Bot - read-only access
+  roles/custom.testingBot:
+    permissions:
+      - secretmanager.secrets.get
+      - secretmanager.secrets.list
+      - cloudkms.keyRings.list
+      - cloudkms.cryptoKeys.list
+
+# Example bindings with conditions
+# projects:
+#   production:
+#     bindings:
+#       # CI can only access production secrets
+#       - role: roles/custom.ciPipeline
+#         members:
+#           - serviceAccount:ci@my-project.iam.gserviceaccount.com
+#         condition:
+#           expression: 'resource.name.startsWith("projects/production/secrets/prod-")'
+#           title: "CI limited to prod secrets"
+#
+#       # Deployment bot can create resources
+#       - role: roles/custom.deploymentBot
+#         members:
+#           - serviceAccount:deploy@my-project.iam.gserviceaccount.com
+#
+#   staging:
+#     bindings:
+#       # Testing bot has read access in staging
+#       - role: roles/custom.testingBot
+#         members:
+#           - serviceAccount:test@my-project.iam.gserviceaccount.com

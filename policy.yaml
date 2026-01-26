@@ -1,0 +1,76 @@
+# GCP Emulator Control Plane - Policy Configuration
+#
+# This single policy file controls authorization across all emulators in the stack.
+
+# Custom Roles
+# Define your own role-to-permission mappings for any GCP service
+roles:
+  # CI Runner - limited access to secrets and encryption
+  roles/custom.ciRunner:
+    permissions:
+      - secretmanager.secrets.get
+      - secretmanager.versions.access
+      - cloudkms.cryptoKeys.encrypt
+      - cloudkms.cryptoKeys.decrypt
+
+  # Developer - read access to secrets and keys
+  roles/custom.developer:
+    permissions:
+      - secretmanager.secrets.get
+      - secretmanager.secrets.list
+      - secretmanager.versions.list
+      - secretmanager.versions.access
+      - cloudkms.keyRings.list
+      - cloudkms.cryptoKeys.list
+      - cloudkms.cryptoKeys.get
+
+  # Admin - full access to secrets and keys
+  roles/custom.admin:
+    permissions:
+      - secretmanager.*
+      - cloudkms.*
+
+# Groups
+# Define reusable principal collections
+groups:
+  developers:
+    members:
+      - user:alice@example.com
+      - user:bob@example.com
+      - user:charlie@example.com
+
+  admins:
+    members:
+      - user:admin@example.com
+      - group:developers  # Admins include all developers
+
+# Projects
+# Define IAM policies per project
+projects:
+  test-project:
+    bindings:
+      # Admins have full access
+      - role: roles/custom.admin
+        members:
+          - group:admins
+
+      # Developers have read access
+      - role: roles/custom.developer
+        members:
+          - group:developers
+
+      # CI runner has limited access to production secrets only
+      - role: roles/custom.ciRunner
+        members:
+          - serviceAccount:ci@test-project.iam.gserviceaccount.com
+        condition:
+          expression: 'resource.name.startsWith("projects/test-project/secrets/prod-")'
+          title: "CI limited to production secrets"
+
+  # Example: Different project with different policies
+  staging-project:
+    bindings:
+      - role: roles/custom.developer
+        members:
+          - user:alice@example.com
+          - serviceAccount:ci@test-project.iam.gserviceaccount.com

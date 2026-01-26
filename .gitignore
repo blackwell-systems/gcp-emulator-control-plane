@@ -1,0 +1,21 @@
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local config overrides
+policy.local.yaml
+docker-compose.override.yml
+
+# Test artifacts
+*.test
+coverage.out
