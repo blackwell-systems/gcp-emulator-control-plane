@@ -27,8 +27,33 @@ roles:
   # Admin - full access to secrets and keys
   roles/custom.admin:
     permissions:
-      - secretmanager.*
-      - cloudkms.*
+      # Secret Manager permissions
+      - secretmanager.secrets.create
+      - secretmanager.secrets.get
+      - secretmanager.secrets.list
+      - secretmanager.secrets.update
+      - secretmanager.secrets.delete
+      - secretmanager.versions.add
+      - secretmanager.versions.access
+      - secretmanager.versions.list
+      - secretmanager.versions.enable
+      - secretmanager.versions.disable
+      - secretmanager.versions.destroy
+      # KMS permissions
+      - cloudkms.keyRings.create
+      - cloudkms.keyRings.get
+      - cloudkms.keyRings.list
+      - cloudkms.cryptoKeys.create
+      - cloudkms.cryptoKeys.get
+      - cloudkms.cryptoKeys.list
+      - cloudkms.cryptoKeys.update
+      - cloudkms.cryptoKeys.encrypt
+      - cloudkms.cryptoKeys.decrypt
+      - cloudkms.cryptoKeyVersions.create
+      - cloudkms.cryptoKeyVersions.get
+      - cloudkms.cryptoKeyVersions.list
+      - cloudkms.cryptoKeyVersions.update
+      - cloudkms.cryptoKeyVersions.destroy
 
 # Groups
 # Define reusable principal collections
