@@ -1,0 +1,12 @@
+# Code owners for GCP Emulator Control Plane
+# These owners will be automatically requested for review when PRs are opened
+
+# Default owner for everything in the repo
+* @blackwell-systems
+
+# Specific ownership for critical files
+/.github/ @blackwell-systems
+/docker-compose.yml @blackwell-systems
+/policy.yaml @blackwell-systems
+/ARCHITECTURE.md @blackwell-systems
+/INTEGRATION_CONTRACT.md @blackwell-systems
