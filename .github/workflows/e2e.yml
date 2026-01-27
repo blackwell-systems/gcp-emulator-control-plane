@@ -36,7 +36,10 @@ jobs:
       if: failure()
       run: |
         echo "=== Docker Compose Logs ===" 
-        docker-compose logs || true
+        docker compose logs || true
+        echo ""
+        echo "=== Container Status ==="
+        docker compose ps || true
 
   e2e-go:
     name: E2E Tests (Go)
@@ -66,4 +69,7 @@ jobs:
       if: failure()
       run: |
         echo "=== Docker Compose Logs ==="
-        docker-compose logs || true
+        docker compose logs || true
+        echo ""
+        echo "=== Container Status ==="
+        docker compose ps || true

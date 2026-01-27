@@ -108,7 +108,12 @@ if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
     success "Secret created"
 else
     error "Failed to create secret (HTTP $HTTP_CODE)"
+    echo "Response body:"
     echo "$BODY"
+    echo ""
+    log "Checking if services are actually running..."
+    docker compose ps
+    exit 1
 fi
 
 # Add secret version
