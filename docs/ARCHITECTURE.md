@@ -1134,18 +1134,116 @@ Client
 
 **Decision:** All emulators implement custom HTTP/REST gateways instead of using grpc-gateway
 
-**Rationale:**
-- **GCP API compatibility** - Full control over REST endpoint structure, query parameters, and JSON serialization to match official GCP APIs exactly
-- **Simpler implementation** - No protobuf annotations required, no code generation step
-- **Custom error handling** - Can map gRPC status codes to HTTP status codes with GCP-specific error formats
-- **Flexibility** - Easy to handle GCP-specific conventions (e.g., `secretId` as query parameter, resource name patterns)
-- **Debuggability** - Direct code path from HTTP request to gRPC call, easier to trace and debug
+**Why this matters:** GCP's REST APIs have specific conventions that are difficult to achieve with grpc-gateway's protobuf-annotation-driven approach.
+
+**Specific control gained:**
+
+1. **Query parameter placement**
+   - **GCP convention:** `POST /v1/projects/my-project/secrets?secretId=my-secret`
+   - **With custom gateway:** Explicitly parse `secretId` from query string, pass to gRPC as field
+   - **With grpc-gateway:** Must use `google.api.http` annotations; less flexible for non-standard param placement
+
+2. **JSON field naming**
+   - **GCP convention:** Mix of camelCase (`secretId`) and snake_case (`crypto_keys`) depending on service
+   - **With custom gateway:** Control exact JSON serialization per endpoint
+   - **With grpc-gateway:** Driven by protobuf field names; harder to match GCP's inconsistencies
+
+3. **HTTP method mapping**
+   - **GCP convention:** `POST /v1/.../secrets/{secret}:addVersion` (custom verb with colon)
+   - **With custom gateway:** Parse `:addVersion` suffix explicitly, route to correct gRPC method
+   - **With grpc-gateway:** Requires complex annotations; may not handle all custom verb patterns
+
+4. **Error response format**
+   - **GCP convention:** Specific JSON error structure with `error.code`, `error.message`, `error.status`
+   - **With custom gateway:** Implement exact error transformation:
+     ```go
+     if err != nil {
+         w.WriteHeader(statusCode)
+         json.NewEncoder(w).Encode(map[string]interface{}{
+             "error": map[string]interface{}{
+                 "code":    statusCode,
+                 "message": grpc.ErrorDesc(err),
+                 "status":  httpStatusToGCPStatus(statusCode),
+             },
+         })
+     }
+     ```
+   - **With grpc-gateway:** Uses default error format; custom error handling requires interceptors
+
+5. **Header propagation**
+   - **GCP convention:** `X-Emulator-Principal` HTTP header → `x-emulator-principal` gRPC metadata
+   - **With custom gateway:** Explicitly copy headers to metadata:
+     ```go
+     principal := r.Header.Get("X-Emulator-Principal")
+     ctx = metadata.AppendToOutgoingContext(ctx, "x-emulator-principal", principal)
+     ```
+   - **With grpc-gateway:** Requires custom metadata annotators; less direct control
+
+6. **Resource name patterns**
+   - **GCP convention:** `projects/{project}/secrets/{secret}/versions/{version}` in URL path
+   - **With custom gateway:** Parse path segments manually, validate format, construct resource names
+   - **With grpc-gateway:** Uses protobuf path templates; harder to customize validation
+
+**Example: Secret Manager CreateSecret endpoint**
+
+**Custom gateway approach:**
+```go
+// URL: POST /v1/projects/my-project/secrets?secretId=my-secret
+// Body: {"replication":{"automatic":{}}}
+
+func (s *Server) handleCreateSecret(w http.ResponseWriter, r *http.Request) {
+    // Parse path: /v1/projects/{project}/secrets
+    parent := extractParent(r.URL.Path) // "projects/my-project"
+    
+    // Parse query parameter
+    secretId := r.URL.Query().Get("secretId") // "my-secret"
+    
+    // Parse JSON body
+    var body map[string]interface{}
+    json.NewDecoder(r.Body).Decode(&body)
+    
+    // Construct gRPC request
+    req := &secretmanagerpb.CreateSecretRequest{
+        Parent:   parent,
+        SecretId: secretId,
+        Secret: &secretmanagerpb.Secret{
+            Replication: parseReplication(body["replication"]),
+        },
+    }
+    
+    // Call gRPC
+    resp, err := s.grpcClient.CreateSecret(ctx, req)
+    
+    // Return GCP-formatted JSON
+    json.NewEncoder(w).Encode(resp)
+}
+```
+
+**grpc-gateway approach:**
+```protobuf
+// Requires annotations in .proto file
+service SecretManagerService {
+  rpc CreateSecret(CreateSecretRequest) returns (Secret) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}/secrets"
+      body: "secret"
+      // secretId as query param requires additional annotation
+      // May not match GCP API exactly
+    };
+  }
+}
+```
+
+**Key differences:**
+- Custom: Write exact routing logic in Go
+- grpc-gateway: Define routing in protobuf annotations
 
 **Considered alternatives:**
 - **grpc-gateway** - Automatic REST endpoint generation from protobuf annotations
   - Pro: Less code to maintain, automatic OpenAPI generation
-  - Con: Less control over API structure, requires protobuf annotations, may not match GCP API exactly
-  - Con: Additional build complexity (code generation step)
+  - Con: Limited control over GCP-specific conventions (query params, error format, custom verbs)
+  - Con: Requires modifying .proto files (may not control them if using official GCP protobufs)
+  - Con: Additional build complexity (code generation step with `protoc`)
 
 **Implementation:**
 - Each emulator has `internal/gateway/gateway.go` with custom routing
@@ -1153,7 +1251,9 @@ Client
 - Manual JSON marshaling/unmarshaling using `protojson`
 - Dual-protocol servers run both gRPC (port 9090) and HTTP (port 8080) in parallel
 
-**Trade-off:** More code to maintain vs exact GCP API compatibility (chosen compatibility)
+**Trade-off:** ~500 lines of custom gateway code per emulator vs exact GCP API compatibility (chosen compatibility)
+
+**Why compatibility matters:** Users expect `curl` commands that work with real GCP to work identically with the emulator. Small differences (query param placement, JSON field names) break this assumption and reduce emulator utility.
 
 ---
 
