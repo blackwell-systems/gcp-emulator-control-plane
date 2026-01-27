@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-01-27
+
+### Added
+- Comprehensive end-to-end integration tests
+  - Bash integration test with curl (HTTP REST API)
+  - Go SDK test with official GCP clients (gRPC)
+  - GitHub Actions workflows for automated testing
+  - Manual workflow trigger support
+
+### Changed
+- Updated to dual-protocol Docker images
+  - Secret Manager v1.2.1+ (gRPC + HTTP)
+  - KMS v0.2.1+ (gRPC + HTTP)
+- Improved health check reliability
+  - IAM v0.6.0+ with dedicated health endpoint (port 9080)
+  - Docker compose health check dependencies
+  - Pre-flight connectivity checks in tests
+
+### Fixed
+- Docker compose command compatibility (modern `docker compose` vs legacy `docker-compose`)
+- Secret Manager REST API format (query parameter for secretId)
+- Deprecated grpc.Dial calls (migrated to grpc.NewClient)
+- Policy.yaml wildcard validation (explicit permissions instead of wildcards)
+- Health check port configurations across all services
+
+## [0.1.1] - 2026-01-27
+
+### Added
+- Initial CI/CD workflows
+- Test and lint automation
+- Release automation with multi-platform binaries
+
 ## [0.1.0] - 2026-01-27
 
 ### Added
@@ -73,5 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-service testing without GCP credentials
 - Authorization logic validation
 
-[Unreleased]: https://github.com/blackwell-systems/gcp-emulator-control-plane/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/blackwell-systems/gcp-emulator-control-plane/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/blackwell-systems/gcp-emulator-control-plane/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/blackwell-systems/gcp-emulator-control-plane/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/blackwell-systems/gcp-emulator-control-plane/releases/tag/v0.1.0
