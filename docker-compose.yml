@@ -22,8 +22,7 @@ services:
       - IAM_MODE=permissive
       - IAM_HOST=iam:8080
     depends_on:
-      iam:
-        condition: service_healthy
+      - iam
 
   # KMS Emulator - Data Plane
   kms:
@@ -37,5 +36,4 @@ services:
       - IAM_MODE=permissive
       - IAM_HOST=iam:8080
     depends_on:
-      iam:
-        condition: service_healthy
+      - iam
