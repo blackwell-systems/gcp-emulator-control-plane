@@ -97,7 +97,7 @@ func testSecretManager(t *testing.T) {
 	ctx = metadata.AppendToOutgoingContext(ctx, "x-emulator-principal", testPrincipal)
 
 	// Create client
-	conn, err := grpc.Dial(
+	conn, err := grpc.NewClient(
 		fmt.Sprintf("localhost:%d", secretManagerPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -165,7 +165,7 @@ func testKMS(t *testing.T) {
 	ctx = metadata.AppendToOutgoingContext(ctx, "x-emulator-principal", testPrincipal)
 
 	// Create client
-	conn, err := grpc.Dial(
+	conn, err := grpc.NewClient(
 		fmt.Sprintf("localhost:%d", kmsPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -240,7 +240,7 @@ func testCrossService(t *testing.T) {
 	ctx = metadata.AppendToOutgoingContext(ctx, "x-emulator-principal", testPrincipal)
 
 	// Connect to both services
-	smConn, err := grpc.Dial(
+	smConn, err := grpc.NewClient(
 		fmt.Sprintf("localhost:%d", secretManagerPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -249,7 +249,7 @@ func testCrossService(t *testing.T) {
 	}
 	defer smConn.Close()
 
-	kmsConn, err := grpc.Dial(
+	kmsConn, err := grpc.NewClient(
 		fmt.Sprintf("localhost:%d", kmsPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -350,7 +350,7 @@ func testIAMEnforcement(t *testing.T) {
 	unauthorizedPrincipal := "user:unauthorized@example.com"
 	ctx = metadata.AppendToOutgoingContext(ctx, "x-emulator-principal", unauthorizedPrincipal)
 
-	conn, err := grpc.Dial(
+	conn, err := grpc.NewClient(
 		fmt.Sprintf("localhost:%d", secretManagerPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
