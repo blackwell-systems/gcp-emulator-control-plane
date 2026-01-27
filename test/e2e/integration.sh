@@ -48,6 +48,8 @@ cleanup() {
     if [ -f "$CLI_BINARY" ]; then
         "$CLI_BINARY" stop >/dev/null 2>&1 || true
     fi
+    # Also cleanup with docker compose directly if CLI failed
+    docker compose -f "$ROOT_DIR/docker-compose.yml" down >/dev/null 2>&1 || true
     rm -f "$CLI_BINARY"
 }
 

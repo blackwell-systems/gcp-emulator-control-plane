@@ -66,8 +66,8 @@ func TestStackLifecycle(t *testing.T) {
 		t.Fatalf("Failed to start stack: %v\n%s", err, output)
 	}
 
-	// Wait for services to be ready
-	time.Sleep(5 * time.Second)
+	// Wait for services to be ready (without health checks, need more time)
+	time.Sleep(15 * time.Second)
 
 	// Check status
 	t.Log("Checking status...")

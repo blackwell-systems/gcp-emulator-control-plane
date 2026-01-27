@@ -9,12 +9,6 @@ services:
     volumes:
       - ./policy.yaml:/policy.yaml:ro
     command: ["./server", "--config", "/policy.yaml"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
 
   # Secret Manager Emulator - Data Plane
   secret-manager:
