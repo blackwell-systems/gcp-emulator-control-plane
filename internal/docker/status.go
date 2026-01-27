@@ -29,8 +29,8 @@ type StackStatus struct {
 func Status(cfg *config.Config) (*StackStatus, error) {
 	status := &StackStatus{}
 
-	// Check IAM health
-	status.IAM = checkHealth(fmt.Sprintf("http://localhost:%d/health", cfg.Ports.IAM))
+	// Check IAM health (health server on gRPC port + 1000)
+	status.IAM = checkHealth(fmt.Sprintf("http://localhost:%d/health", cfg.Ports.IAM+1000))
 
 	// Check Secret Manager health (HTTP port is 8081, mapped from container 8080)
 	status.SecretManager = checkHealth("http://localhost:8081/health")
