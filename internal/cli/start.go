@@ -57,7 +57,7 @@ func init() {
 	startCmd.Flags().Bool("pull", false, "Pull latest images before starting")
 	startCmd.Flags().BoolP("detach", "d", true, "Run in background")
 
-	// Bind flags to viper
-	viper.BindPFlag("iam-mode", startCmd.Flags().Lookup("mode"))
-	viper.BindPFlag("pull-on-start", startCmd.Flags().Lookup("pull"))
+	// Bind flags to viper (errors only happen if flag doesn't exist, which can't happen here)
+	_ = viper.BindPFlag("iam-mode", startCmd.Flags().Lookup("mode"))
+	_ = viper.BindPFlag("pull-on-start", startCmd.Flags().Lookup("pull"))
 }
