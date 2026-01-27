@@ -19,3 +19,4 @@ docker-compose.override.yml
 # Test artifacts
 *.test
 coverage.out
+gcp-emulator
