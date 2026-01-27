@@ -14,10 +14,11 @@ It composes:
 - (future) additional emulators that follow the same contract
 
 This repo provides the **control plane glue**:
-- `docker compose up` to run a coherent stack
-- a single `policy.yaml` that drives authorization everywhere
-- a stable **integration contract** (resource naming + permissions + principal propagation)
-- end-to-end examples and integration tests that mirror production IAM behavior
+- **`gcp-emulator` CLI** - Single command to manage the entire stack
+- `docker compose` orchestration for direct usage
+- Single `policy.yaml` that drives authorization everywhere
+- Stable **integration contract** (resource naming + permissions + principal propagation)
+- End-to-end examples and integration tests that mirror production IAM behavior
 
 ---
 
@@ -58,24 +59,44 @@ Secret Manager and KMS enforce the same policy engine, the same way.
 ### CI-friendly and hermetic
 No network calls, no cloud credentials required.
 
+### Unified CLI
+Single command to manage the entire stack - no docker-compose knowledge required.
+
 ---
 
 ## Quickstart
 
-### 1) Prerequisites
-- Docker + Docker Compose
-- (optional) Go toolchain if you want to build locally
+### Option 1: Using the CLI (Recommended)
 
-### 2) Start the stack
-
+**Install:**
 ```bash
-docker compose up
+go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+```
+
+**Start the stack:**
+```bash
+gcp-emulator start
+```
+
+**Check status:**
+```bash
+gcp-emulator status
 ```
 
 You now have:
 - IAM Emulator: `localhost:8080` (gRPC)
 - Secret Manager Emulator: `localhost:9090` (gRPC), `localhost:8081` (HTTP)
 - KMS Emulator: `localhost:9091` (gRPC), `localhost:8082` (HTTP)
+
+### Option 2: Using Docker Compose Directly
+
+**Prerequisites:**
+- Docker + Docker Compose
+
+**Start the stack:**
+```bash
+docker compose up
+```
 
 ### 3) Configure policy
 
@@ -112,6 +133,15 @@ projects:
 
 ### 4) Test principal injection
 
+**Using the CLI:**
+```bash
+# Check status
+gcp-emulator status
+
+# View logs
+gcp-emulator logs --follow
+```
+
 **HTTP example (Secret Manager):**
 
 ```bash
@@ -121,9 +151,13 @@ curl -X POST http://localhost:8081/v1/projects/test-project/secrets \
   -d '{"secretId":"db-password","payload":{"data":"c2VjcmV0"}}'
 ```
 
-Check IAM logs:
+**Check IAM logs:**
 
 ```bash
+# With CLI
+gcp-emulator logs iam
+
+# Or with docker-compose
 docker compose logs iam
 ```
 
@@ -215,10 +249,46 @@ When enabled:
 
 ---
 
+## CLI Commands
+
+The `gcp-emulator` CLI provides a unified interface:
+
+**Stack management:**
+```bash
+gcp-emulator start [--mode=permissive|strict|off]
+gcp-emulator stop
+gcp-emulator restart [service]
+gcp-emulator status
+gcp-emulator logs [service] [--follow]
+```
+
+**Policy management:**
+```bash
+gcp-emulator policy validate [file]
+gcp-emulator policy init [--template=basic|advanced|ci]
+```
+
+**Configuration:**
+```bash
+gcp-emulator config get
+gcp-emulator config set <key> <value>
+gcp-emulator config reset
+```
+
+**For complete CLI documentation, see [CLI_DESIGN.md](docs/CLI_DESIGN.md)**
+
+---
+
 ## Repo Layout
 
 ```
 .
+├─ cmd/gcp-emulator/           # CLI entry point
+├─ internal/
+│   ├─ cli/                    # CLI commands
+│   ├─ config/                 # Configuration (Viper)
+│   ├─ docker/                 # Docker compose wrapper
+│   └─ policy/                 # Policy parsing/validation
 ├─ docker-compose.yml
 ├─ policy.yaml
 ├─ packs/
@@ -229,9 +299,13 @@ When enabled:
 │   ├─ go/
 │   └─ curl/
 ├─ docs/
-│   ├─ INTEGRATION_CONTRACT.md
+│   ├─ CLI_DESIGN.md
+│   ├─ CLI_VIPER_PATTERN.md
+│   ├─ END_TO_END_TUTORIAL.md
+│   ├─ ARCHITECTURE.md
 │   ├─ MIGRATION.md
-│   └─ TROUBLESHOOTING.md
+│   ├─ TROUBLESHOOTING.md
+│   └─ INTEGRATION_CONTRACT.md
 └─ README.md
 ```
 
@@ -252,15 +326,27 @@ Start simple: copy/paste into your `policy.yaml`.
 
 ## CI Usage
 
-### GitHub Actions (example)
+### Using the CLI in CI
 
 ```yaml
-services:
-  control-plane:
-    image: ghcr.io/blackwell-systems/gcp-emulator-control-plane:latest
+- name: Install gcp-emulator CLI
+  run: go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+
+- name: Start emulator stack
+  run: gcp-emulator start --mode=strict
+
+- name: Run tests
+  run: go test ./...
+
+- name: Check IAM logs for denials
+  if: failure()
+  run: gcp-emulator logs iam | grep DENY
+
+- name: Stop emulators
+  run: gcp-emulator stop
 ```
 
-Or run directly with compose:
+### Using Docker Compose in CI
 
 ```yaml
 - name: Start emulators
@@ -268,6 +354,9 @@ Or run directly with compose:
 
 - name: Run tests
   run: go test ./...
+
+- name: Stop emulators
+  run: docker compose down
 ```
 
 ---
