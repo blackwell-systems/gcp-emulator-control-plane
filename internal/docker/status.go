@@ -32,11 +32,11 @@ func Status(cfg *config.Config) (*StackStatus, error) {
 	// Check IAM health
 	status.IAM = checkHealth(fmt.Sprintf("http://localhost:%d/health", cfg.Ports.IAM))
 
-	// Check Secret Manager health (HTTP port is gRPC port + 1)
-	status.SecretManager = checkHealth(fmt.Sprintf("http://localhost:%d/health", cfg.Ports.SecretManager+1))
+	// Check Secret Manager health (HTTP port is 8081, mapped from container 8080)
+	status.SecretManager = checkHealth("http://localhost:8081/health")
 
-	// Check KMS health (HTTP port is gRPC port + 1)
-	status.KMS = checkHealth(fmt.Sprintf("http://localhost:%d/health", cfg.Ports.KMS+1))
+	// Check KMS health (HTTP port is 8082, mapped from container 8080)
+	status.KMS = checkHealth("http://localhost:8082/health")
 
 	return status, nil
 }

@@ -78,7 +78,7 @@ fi
 
 # Wait for services to be ready
 log "Waiting for services to be ready..."
-sleep 5
+sleep 20
 
 # Check status
 log "Checking stack status..."
