@@ -1130,6 +1130,31 @@ Client
 
 **Trade-off:** Data lost on restart (acceptable for testing)
 
+### 6. Custom HTTP Gateway (Not grpc-gateway)
+
+**Decision:** All emulators implement custom HTTP/REST gateways instead of using grpc-gateway
+
+**Rationale:**
+- **GCP API compatibility** - Full control over REST endpoint structure, query parameters, and JSON serialization to match official GCP APIs exactly
+- **Simpler implementation** - No protobuf annotations required, no code generation step
+- **Custom error handling** - Can map gRPC status codes to HTTP status codes with GCP-specific error formats
+- **Flexibility** - Easy to handle GCP-specific conventions (e.g., `secretId` as query parameter, resource name patterns)
+- **Debuggability** - Direct code path from HTTP request to gRPC call, easier to trace and debug
+
+**Considered alternatives:**
+- **grpc-gateway** - Automatic REST endpoint generation from protobuf annotations
+  - Pro: Less code to maintain, automatic OpenAPI generation
+  - Con: Less control over API structure, requires protobuf annotations, may not match GCP API exactly
+  - Con: Additional build complexity (code generation step)
+
+**Implementation:**
+- Each emulator has `internal/gateway/gateway.go` with custom routing
+- HTTP server runs gRPC client to localhost (internal loopback)
+- Manual JSON marshaling/unmarshaling using `protojson`
+- Dual-protocol servers run both gRPC (port 9090) and HTTP (port 8080) in parallel
+
+**Trade-off:** More code to maintain vs exact GCP API compatibility (chosen compatibility)
+
 ---
 
 ## Extension Points
