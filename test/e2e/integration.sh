@@ -103,11 +103,10 @@ if ! curl -s --max-time 2 http://localhost:$SM_HTTP_PORT/health > /dev/null 2>&1
     exit 1
 fi
 
-RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://localhost:$SM_HTTP_PORT/v1/projects/$PROJECT/secrets" \
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://localhost:$SM_HTTP_PORT/v1/projects/$PROJECT/secrets?secretId=test-secret" \
   -H "X-Emulator-Principal: $PRINCIPAL" \
   -H "Content-Type: application/json" \
   -d '{
-    "secretId": "test-secret",
     "replication": {
       "automatic": {}
     }
@@ -247,11 +246,10 @@ log "===== Testing IAM Enforcement ====="
 # Test with unauthorized principal
 log "Testing with unauthorized principal..."
 UNAUTHORIZED="user:unauthorized@example.com"
-RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://localhost:$SM_HTTP_PORT/v1/projects/$PROJECT/secrets" \
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://localhost:$SM_HTTP_PORT/v1/projects/$PROJECT/secrets?secretId=unauthorized-secret" \
   -H "X-Emulator-Principal: $UNAUTHORIZED" \
   -H "Content-Type: application/json" \
   -d '{
-    "secretId": "unauthorized-secret",
     "replication": {
       "automatic": {}
     }
