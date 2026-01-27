@@ -1,3 +1,8 @@
+// Package config provides configuration management for the gcp-emulator CLI.
+//
+// It implements the disciplined Viper pattern where Viper stays contained
+// in this package and the rest of the codebase receives explicit Config structs.
+// Configuration sources are resolved in this order: flags > env > config file > defaults.
 package config
 
 import (

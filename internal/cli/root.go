@@ -1,3 +1,7 @@
+// Package cli implements the gcp-emulator CLI commands using Cobra.
+//
+// Commands include stack management (start, stop, status), policy operations
+// (validate, init), and configuration management (get, set, reset).
 package cli
 
 import (

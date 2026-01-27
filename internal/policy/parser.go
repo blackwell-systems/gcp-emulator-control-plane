@@ -1,3 +1,8 @@
+// Package policy provides policy.yaml parsing and validation for the GCP emulator ecosystem.
+//
+// It validates IAM policy structure including roles, groups, projects, bindings,
+// and CEL conditions. The validator ensures permission format correctness and
+// catches common configuration errors before runtime.
 package policy
 
 import (

@@ -1,3 +1,6 @@
+// Package docker provides a wrapper around docker-compose commands for managing
+// the GCP emulator stack. It abstracts compose operations and injects configuration
+// via environment variables.
 package docker
 
 import (
