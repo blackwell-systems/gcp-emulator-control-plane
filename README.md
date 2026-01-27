@@ -1,5 +1,12 @@
 # GCP Emulator Control Plane
 
+[![Blackwell Systems](https://raw.githubusercontent.com/blackwell-systems/blackwell-docs-theme/main/badge-trademark.svg)](https://github.com/blackwell-systems)
+[![Go Reference](https://pkg.go.dev/badge/github.com/blackwell-systems/gcp-emulator-control-plane.svg)](https://pkg.go.dev/github.com/blackwell-systems/gcp-emulator-control-plane)
+[![Go Version](https://img.shields.io/badge/go-1.24+-blue.svg)](https://go.dev/)
+[![Test Status](https://github.com/blackwell-systems/gcp-emulator-control-plane/workflows/Test/badge.svg)](https://github.com/blackwell-systems/gcp-emulator-control-plane/actions)
+[![Version](https://img.shields.io/github/v/release/blackwell-systems/gcp-emulator-control-plane)](https://github.com/blackwell-systems/gcp-emulator-control-plane/releases)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
 > **If you're testing GCP emulators without IAM, you're not testing production behavior.**  
 > This repo adds the missing control plane.
 
