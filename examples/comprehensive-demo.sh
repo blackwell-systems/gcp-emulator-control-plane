@@ -150,7 +150,7 @@ echo ""
 # List keys
 echo "3. Listing crypto keys..."
 curl -s "$KMS_URL/v1/projects/$PROJECT/locations/global/keyRings/app-keys/cryptoKeys" \
-    -H "X-Emulator-Principal: $PRINCIPAL" | jq -r '.cryptoKeys[].name'
+    -H "X-Emulator-Principal: $PRINCIPAL" | jq -r '.crypto_keys[].name'
 echo ""
 
 # Encrypt data
