@@ -1106,20 +1106,3 @@ gcp-emulator stop
 
 ---
 
-## Non-Goals
-
-- **Not a GUI tool** (use `gcp-emulator ui` for that in future)
-- **Not a replacement for docker-compose** (wraps it, doesn't replace it)
-- **Not a deployment tool** (for local dev/CI only)
-- **Not cloud-aware** (doesn't connect to real GCP)
-
----
-
-## Success Metrics
-
-CLI is successful if:
-- New users can start stack in < 1 minute
-- Common tasks require single command
-- Error messages are actionable
-- Documentation is rarely needed
-- Users prefer CLI over docker-compose
