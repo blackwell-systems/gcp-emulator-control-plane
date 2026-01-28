@@ -23,7 +23,7 @@ Unlike mocks (which allow everything) or observers like iamlive (which record af
 | Observer | iamlive (AWS) | After | Records what you used |
 | **Control Plane** | **Blackwell IAM** | **Before** | **Denies unauthorized** |
 
-**Key insight:** Pre-flight enforcement catches permission bugs in development and CI, not production.
+Pre-flight enforcement catches permission bugs in development and CI, not production.
 
 ---
 
@@ -256,7 +256,7 @@ See [CI Integration](docs/CI_INTEGRATION.md) for GitLab, CircleCI, Jenkins examp
 - Stores resources in-memory
 - Enforces decisions from control plane
 
-**Key insight:** This architecture matches real GCP. Secrets/keys live in the data plane. Authorization logic lives in the control plane. Testing this separation catches production bugs.
+This architecture matches real GCP. Secrets/keys live in the data plane. Authorization logic lives in the control plane. Testing this separation catches production bugs.
 
 See [Architecture](docs/ARCHITECTURE.md) for detailed system design.
 
