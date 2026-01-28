@@ -269,6 +269,102 @@ See [CI Integration](docs/CI_INTEGRATION.md) for GitLab, CircleCI, Jenkins examp
 
 ---
 
+## Authorization Tracing
+
+Structured logging of IAM authorization decisions across the entire emulator stack.
+
+### Enable Tracing
+
+```bash
+# Start stack with tracing enabled
+IAM_TRACE_OUTPUT=./authz-trace.jsonl gcp-emulator start --mode=strict
+
+# Or export environment variable
+export IAM_TRACE_OUTPUT=./authz-trace.jsonl
+gcp-emulator start --mode=strict
+```
+
+### What Gets Traced
+
+Every authorization check across all services emits structured events:
+- **IAM Emulator** (control plane) - Policy engine decisions (authoritative)
+- **Secret Manager** - Secret access checks (via enforcement proxy)
+- **KMS** - Key operation checks (via enforcement proxy)
+
+Each service emits JSONL events with principal, resource, permission, outcome, and timing.
+
+### Use Cases
+
+**Debug Cross-Service Authorization:**
+```bash
+# See all denied requests across the stack
+cat authz-trace.jsonl | jq 'select(.decision.outcome=="DENY")'
+
+# Filter by service
+cat authz-trace.jsonl | jq 'select(.environment.component=="gcp-iam-emulator")'
+```
+
+**Audit CI Access Patterns:**
+```bash
+# List all resources accessed during test run
+cat authz-trace.jsonl | \
+  jq -r 'select(.decision.outcome=="ALLOW") | .target.resource' | sort -u
+
+# See which principals were tested
+cat authz-trace.jsonl | jq -r '.actor.principal' | sort -u
+```
+
+**Validate Policy Changes:**
+```bash
+# Before policy change
+IAM_TRACE_OUTPUT=./before.jsonl gcp-emulator start --mode=strict
+go test ./...
+gcp-emulator stop
+
+# After policy change
+IAM_TRACE_OUTPUT=./after.jsonl gcp-emulator start --mode=strict
+go test ./...
+
+# Compare outcomes (detect regressions)
+diff <(jq -r '.decision.outcome' before.jsonl | sort) \
+     <(jq -r '.decision.outcome' after.jsonl | sort)
+```
+
+**CI/CD Compliance:**
+```bash
+# GitHub Actions - archive traces as artifacts
+- name: Run tests with tracing
+  env:
+    IAM_TRACE_OUTPUT: ${{ runner.temp }}/authz-trace.jsonl
+  run: |
+    gcp-emulator start --mode=strict
+    go test ./...
+    
+- name: Upload authorization audit trail
+  uses: actions/upload-artifact@v3
+  with:
+    name: authorization-traces
+    path: ${{ runner.temp }}/authz-trace.jsonl
+```
+
+### Trace Schema
+
+Events follow schema v1.0:
+- JSONL format (one event per line)
+- Schema-versioned for compatibility
+- Includes actor, resource, permission, decision, timing, component
+
+**Example event:**
+```json
+{"schema_version":"1.0","event_type":"authz_check","timestamp":"2026-01-28T10:15:23.483Z","actor":{"principal":"user:alice@example.com"},"target":{"resource":"projects/test/secrets/db-password"},"action":{"permission":"secretmanager.secrets.get"},"decision":{"outcome":"ALLOW","reason":"binding_match","evaluated_by":"gcp-iam-emulator","latency_ms":3}}
+```
+
+See component READMEs for detailed schema documentation:
+- [IAM Emulator Tracing](https://github.com/blackwell-systems/gcp-iam-emulator#authorization-tracing)
+- [Enforcement Proxy Tracing](https://github.com/blackwell-systems/gcp-emulator-auth#authorization-tracing)
+
+---
+
 ## Control Plane vs Data Plane
 
 **Control Plane (IAM Emulator):**
