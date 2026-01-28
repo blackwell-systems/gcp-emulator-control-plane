@@ -7,408 +7,175 @@
 [![Version](https://img.shields.io/github/v/release/blackwell-systems/gcp-emulator-control-plane)](https://github.com/blackwell-systems/gcp-emulator-control-plane/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-> **If you're testing GCP emulators without IAM, you're not testing production behavior.**  
-> This repo adds the missing control plane.
+> **If you're testing GCP emulators without IAM, you're not testing production behavior.**
 
-> One policy file. One principal injection method. Consistent authorization across all emulators.
-
-**GCP Emulator Control Plane** provides a unified CLI (`gcp-emulator`) for managing the complete GCP emulator ecosystem with production-like IAM enforcement. Start/stop services, manage policies, view logs, and test authorization - all without docker-compose knowledge or GCP credentials.
-
-## Ecosystem Components
-
-This control plane orchestrates the complete Blackwell Systems GCP emulator ecosystem:
-
-| Component | Role | Repository | Status |
-|-----------|------|------------|--------|
-| [gcp-iam-emulator](https://github.com/blackwell-systems/gcp-iam-emulator) | Authorization engine (control plane) | [`blackwell-systems/gcp-iam-emulator`](https://github.com/blackwell-systems/gcp-iam-emulator) | ✓ Stable |
-| [gcp-secret-manager-emulator](https://github.com/blackwell-systems/gcp-secret-manager-emulator) | Secret Manager API (data plane) | [`blackwell-systems/gcp-secret-manager-emulator`](https://github.com/blackwell-systems/gcp-secret-manager-emulator) | ✓ Stable (v1.2.1+) |
-| [gcp-kms-emulator](https://github.com/blackwell-systems/gcp-kms-emulator) | KMS API (data plane) | [`blackwell-systems/gcp-kms-emulator`](https://github.com/blackwell-systems/gcp-kms-emulator) | ✓ Stable (v0.2.1+) |
-
-**All components can run standalone or orchestrated together.**
-
-Each emulator follows the [Integration Contract](docs/INTEGRATION_CONTRACT.md):
-- Resource naming conventions
-- Permission mappings
-- Principal propagation (gRPC + HTTP)
-- IAM mode configuration (off, permissive, strict)
-
-Future emulators (Cloud Storage, Pub/Sub, etc.) will follow the same contract
-
-The `gcp-emulator` CLI provides:
-- **Unified management** - Single command to start/stop/restart the entire stack
-- **Policy management** - Validate, initialize, and test your `policy.yaml` authorization rules
-- **Log aggregation** - View logs from all services or specific emulators
-- **Configuration control** - Set IAM modes (off/permissive/strict) and emulator endpoints
-- **No docker-compose knowledge required** - Simple commands, complex orchestration underneath
-
-Also includes:
-- Direct `docker compose` orchestration if you prefer manual control
-- Stable **integration contract** for building new emulators (resource naming + permissions + principal propagation)
-- End-to-end examples and integration tests that mirror production IAM behavior
+Unified CLI (`gcp-emulator`) for managing GCP emulators with production-like IAM enforcement. Start/stop services, manage policies, view logs, and test authorization—all without docker-compose knowledge or GCP credentials.
 
 ---
 
 ## Why This Exists
 
-Most "emulators" are **data-plane only**: they implement CRUD operations but skip auth.
+Most GCP emulators implement CRUD operations but skip authorization.
 
-In real GCP, **IAM is the control plane**:
-- every request is authorized
-- conditions restrict access (resource name, time, etc.)
-- policies are inherited down resource hierarchies
+In production GCP, **IAM is the control plane**:
+- Every request is authorized against policy
+- Conditions restrict access (resource patterns, time, etc.)
+- Policies enforce the principle of least privilege
 
-If your tests don't exercise authorization, you miss an entire class of production bugs:
-- incorrect roles
-- missing permissions
-- wrong principal identity
-- policies that pass in dev but fail in prod
+Without IAM testing, you miss:
+- Incorrect role assignments
+- Missing permissions
+- Wrong principal identity
+- Policies that work in dev but fail in prod
 
-**This repo makes IAM enforcement testable and deterministic, locally and in CI.**
+**This control plane makes IAM enforcement testable and deterministic, locally and in CI.**
 
 ---
 
 ## What You Get
 
-### Unified CLI
-Single command to manage the entire stack - no docker-compose knowledge required. Start/stop services, validate policies, view logs, and control IAM modes from one tool.
-
-### One policy file (offline, deterministic)
-Define your authorization universe once in `policy.yaml` or `policy.json` (both formats supported). All emulators enforce the same policy engine, the same way. Use JSON to test with actual GCP policies exported from production.
-
-### One identity channel end-to-end
-Inject a principal consistently:
-- gRPC: `x-emulator-principal`
-- HTTP: `X-Emulator-Principal`
-
-That identity is propagated from emulator → IAM emulator without rewriting your app code.
-
-### Cross-service authorization
-Secret Manager and KMS enforce the same policy engine, with consistent permission checking across all emulators.
-
-### CI-friendly and hermetic
-No network calls, no cloud credentials required. Deterministic authorization testing in CI pipelines.
+- **Unified CLI** - Single command to start/stop/restart the entire stack, no docker-compose knowledge required
+- **Production policy testing** - Export real GCP policies and test locally (`gcloud get-iam-policy` → test)
+- **One policy file** - Define authorization once in `policy.yaml` or `policy.json`, enforced consistently across all emulators
+- **Principal injection** - Consistent identity channel (gRPC `x-emulator-principal`, HTTP `X-Emulator-Principal`)
+- **Hermetic testing** - No network calls, no cloud credentials, deterministic CI pipelines
+- **Multiple IAM modes** - Off/permissive/strict for different testing scenarios
 
 ---
 
 ## Quickstart
 
-### 1) Install the CLI (Recommended)
+### Install
 
 ```bash
 go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
 ```
 
-**Alternative:** Use `docker compose` directly if you prefer manual orchestration (see [Docker Compose Usage](#docker-compose-usage) below).
-
-### 2) Start the stack
+### Start the Stack
 
 ```bash
 gcp-emulator start
 ```
 
-This starts:
-- IAM Emulator: `localhost:8080` (gRPC)
-- Secret Manager Emulator: `localhost:9090` (gRPC), `localhost:8081` (HTTP)
-- KMS Emulator: `localhost:9091` (gRPC), `localhost:8082` (HTTP)
+This starts three services:
+- **IAM Emulator** (control plane): `localhost:8080` (gRPC)
+- **Secret Manager Emulator** (data plane): `localhost:9090` (gRPC), `localhost:8081` (HTTP)
+- **KMS Emulator** (data plane): `localhost:9091` (gRPC), `localhost:8082` (HTTP)
 
-**Check status:**
-```bash
-gcp-emulator status
-```
+### Configure Policy
 
-### 3) Configure policy
-
-**Supports both YAML and JSON formats** (detected by file extension).
-
-Edit `policy.yaml` (or `policy.json`):
+Edit `policy.yaml` (YAML or JSON supported):
 
 ```yaml
 roles:
-  roles/custom.ciRunner:
+  roles/custom.developer:
     permissions:
       - secretmanager.secrets.get
       - secretmanager.versions.access
-      - cloudkms.cryptoKeys.encrypt
 
 groups:
   developers:
     members:
       - user:alice@example.com
-      - user:bob@example.com
 
 projects:
   test-project:
     bindings:
-      - role: roles/owner
+      - role: roles/custom.developer
         members:
           - group:developers
-
-      - role: roles/custom.ciRunner
-        members:
-          - serviceAccount:ci@test-project.iam.gserviceaccount.com
-        condition:
-          expression: 'resource.name.startsWith("projects/test-project/secrets/prod-")'
-          title: "CI limited to production secrets"
 ```
 
-### 4) Test principal injection
+See [Policy Reference](docs/POLICY_REFERENCE.md) for complete policy syntax.
 
-**Using the CLI:**
-```bash
-# Check status
-gcp-emulator status
-
-# View logs
-gcp-emulator logs --follow
-```
-
-**HTTP example (Secret Manager):**
+### Test with Principal Injection
 
 ```bash
+# Secret Manager HTTP API
 curl -X POST http://localhost:8081/v1/projects/test-project/secrets \
   -H "X-Emulator-Principal: user:alice@example.com" \
   -H "Content-Type: application/json" \
   -d '{"secretId":"db-password","payload":{"data":"c2VjcmV0"}}'
-```
 
-**Check IAM logs:**
-
-```bash
-# With CLI
+# Check authorization logs
 gcp-emulator logs iam
-
-# Or with docker-compose
-docker compose logs iam
 ```
 
 ---
 
 ## Testing with Production Policies
 
-Test your app with actual production IAM policies, locally and in CI.
+Stop hand-writing test policies that drift from production.
 
-Stop hand-writing test policies that drift from production. Export your real GCP IAM policy and test against it:
+Export your real GCP IAM policy and test against it:
 
 ```bash
-# Export your production IAM policy
+# Export production policy
 gcloud projects get-iam-policy my-prod-project --format=json > prod-policy.json
 
 # Test locally with production permissions
-gcp-emulator start --policy-file=prod-policy.json
+gcp-emulator start --policy-file=prod-policy.json --mode=strict
 go test ./...
 
-# Find permission issues before deploying
+# Catch permission issues before deploying
 gcp-emulator logs iam | grep DENY
 ```
 
 **Why this matters:**
-- Test with the exact IAM policy running in production
-- Catch permission issues in CI, not in production  
-- No policy drift between test and prod environments
-- Works with policies exported from Terraform, CDK, or GCP Console
+- Test with exact production policy
+- Catch permission issues in CI, not production
+- No policy drift between environments
+- Works with Terraform, CDK, or Console exports
 
-Both YAML and JSON formats are supported. JSON format matches GCP's native IAM policy structure exactly.
-
----
-
-## Docker Compose Usage
-
-If you prefer manual orchestration without the CLI:
-
-**Prerequisites:**
-- Docker + Docker Compose
-
-**Start the stack:**
-```bash
-docker compose up -d
-```
-
-**View logs:**
-```bash
-docker compose logs iam          # IAM emulator
-docker compose logs secretmanager # Secret Manager
-docker compose logs kms          # KMS
-```
-
-**Stop the stack:**
-```bash
-docker compose down
-```
-
-The `gcp-emulator` CLI wraps these commands with policy validation, status checks, and unified log viewing.
+Both YAML and JSON formats supported. JSON matches GCP's native IAM policy structure.
 
 ---
 
-## Why not just mock the SDK?
+## Ecosystem
 
-Because mocks don't test:
-- inheritance resolution
-- conditional bindings
-- cross-service consistency
-- real permission names / drift
+This control plane orchestrates multiple emulators:
 
-This stack tests the actual control plane behavior.
+| Component | Role | Status |
+|-----------|------|--------|
+| [gcp-iam-emulator](https://github.com/blackwell-systems/gcp-iam-emulator) | Authorization engine (control plane) | ✓ Stable |
+| [gcp-secret-manager-emulator](https://github.com/blackwell-systems/gcp-secret-manager-emulator) | Secret Manager API (data plane) | ✓ Stable |
+| [gcp-kms-emulator](https://github.com/blackwell-systems/gcp-kms-emulator) | KMS API (data plane) | ✓ Stable |
 
----
-
-## Stack Overview
-
-### Control Plane
-
-- **IAM Emulator**: policy evaluation engine
-- **policy.yaml**: the source of truth for authorization behavior
-- **principal propagation**: consistent identity channel
-
-### Data Plane
-
-- **Secret Manager Emulator**: enforces `secretmanager.*` permissions
-- **KMS Emulator**: enforces `cloudkms.*` permissions
-
----
-
-## Integration Contract (Stable)
-
-This repo defines the contract new emulators must implement to join the mesh.
-
-### 1) Canonical resource naming
-
-**Secret Manager**
-
-```
-projects/{project}/secrets/{secret}
-projects/{project}/secrets/{secret}/versions/{version}
-```
-
-**KMS**
-
-```
-projects/{project}/locations/{location}/keyRings/{keyring}
-projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}
-projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}/cryptoKeyVersions/{version}
-```
-
-### 2) Operation → permission mapping
-
-Each emulator maps API operations to real GCP permissions.
-
-Examples:
-- `AccessSecretVersion` → `secretmanager.versions.access`
-- `Encrypt` → `cloudkms.cryptoKeys.encrypt`
-
-### 3) Principal injection (inbound)
-
-- gRPC: `x-emulator-principal`
-- HTTP: `X-Emulator-Principal`
-
-### 4) Principal propagation (outbound)
-
-Emulators call IAM emulator using `TestIamPermissions`, and propagate identity via metadata (not request fields).
-
----
-
-## Compatibility and Non-Breaking Behavior
-
-IAM enforcement is **opt-in** per emulator.
-
-Default behavior remains the same as classic emulators:
-- IAM disabled → all requests succeed (legacy behavior)
-
-When enabled:
-- permissive or strict mode controls failure behavior (fail-open vs fail-closed)
-
-**Environment variables (standardized):**
-
-| Variable     | Purpose           | Default              |
-| ------------ | ----------------- | -------------------- |
-| `IAM_MODE`   | off/permissive/strict | `off`            |
-| `IAM_HOST`   | IAM endpoint      | `iam:8080` (compose) |
+All components can run standalone or orchestrated together. New emulators follow the [Integration Contract](docs/INTEGRATION_CONTRACT.md).
 
 ---
 
 ## CLI Commands
 
-The `gcp-emulator` CLI provides a unified interface:
-
-**Stack management:**
 ```bash
+# Stack management
 gcp-emulator start [--mode=permissive|strict|off]
 gcp-emulator stop
-gcp-emulator restart [service]
 gcp-emulator status
 gcp-emulator logs [service] [--follow]
-```
 
-**Policy management:**
-```bash
-gcp-emulator policy validate [file]           # Supports .yaml, .yml, and .json
-gcp-emulator policy init [--template=basic|advanced|ci] [--output=policy.yaml|policy.json]
-```
+# Policy management
+gcp-emulator policy validate [file]
+gcp-emulator policy init [--template=basic|advanced|ci] [--output=policy.yaml]
 
-**Configuration:**
-```bash
+# Configuration
 gcp-emulator config get
 gcp-emulator config set <key> <value>
-gcp-emulator config reset
 ```
 
-**For complete CLI documentation, see [CLI_DESIGN.md](docs/CLI_DESIGN.md)**
+See [CLI Design](docs/CLI_DESIGN.md) for complete command reference.
 
 ---
 
-## Repo Layout
+## CI Integration
 
-```
-.
-├─ cmd/gcp-emulator/           # CLI entry point
-├─ internal/
-│   ├─ cli/                    # CLI commands
-│   ├─ config/                 # Configuration (Viper)
-│   ├─ docker/                 # Docker compose wrapper
-│   └─ policy/                 # Policy parsing/validation
-├─ docker-compose.yml
-├─ policy.yaml
-├─ packs/
-│   ├─ secretmanager.yaml
-│   ├─ kms.yaml
-│   └─ ci.yaml
-├─ examples/
-│   ├─ go/
-│   └─ curl/
-├─ docs/
-│   ├─ CLI_DESIGN.md
-│   ├─ CLI_VIPER_PATTERN.md
-│   ├─ END_TO_END_TUTORIAL.md
-│   ├─ ARCHITECTURE.md
-│   ├─ MIGRATION.md
-│   ├─ TROUBLESHOOTING.md
-│   └─ INTEGRATION_CONTRACT.md
-└─ README.md
-```
-
----
-
-## Policy Packs
-
-The `packs/` directory contains ready-to-copy role definitions for common services:
-- Secret Manager roles
-- KMS roles
-- CI patterns
-
-Start simple: copy/paste into your `policy.yaml`.
-
-(Directory merge/import can be added later if demand exists.)
-
----
-
-## CI Usage
-
-### Recommended: Using the CLI
+### GitHub Actions
 
 ```yaml
-- name: Install gcp-emulator CLI
+- name: Install CLI
   run: go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
 
-- name: Start emulator stack
+- name: Start emulators (strict mode)
   run: gcp-emulator start --mode=strict
 
 - name: Run tests
@@ -419,34 +186,150 @@ Start simple: copy/paste into your `policy.yaml`.
   run: gcp-emulator logs iam | grep DENY
 
 - name: Stop emulators
+  if: always()
   run: gcp-emulator stop
 ```
 
-### Alternative: Using Docker Compose directly
+**IAM Modes:**
+- `off` - No IAM enforcement (fast iteration)
+- `permissive` - IAM enabled, fail-open on errors (development)
+- `strict` - IAM enabled, fail-closed (production parity, recommended for CI)
+
+See [CI Integration](docs/CI_INTEGRATION.md) for GitLab, CircleCI, Jenkins examples.
+
+---
+
+## Control Plane vs Data Plane
+
+**Control Plane (IAM Emulator):**
+- Evaluates authorization policy from `policy.yaml`
+- Expands roles, resolves groups, evaluates conditions
+- Returns allow/deny decisions
+- Stateless - doesn't know about secrets or keys
+
+**Data Plane (Secret Manager, KMS):**
+- Implements CRUD operations
+- Checks permissions by calling IAM emulator
+- Stores resources in-memory
+- Enforces decisions from control plane
+
+**Key insight:** This architecture matches real GCP. Secrets/keys live in the data plane. Authorization logic lives in the control plane. Testing this separation catches production bugs.
+
+See [Architecture](docs/ARCHITECTURE.md) for detailed system design.
+
+---
+
+## Why Not Mock the SDK?
+
+Mocks don't test:
+- **Policy inheritance** - Project-level bindings affecting resources
+- **Conditional access** - CEL expressions restricting by resource name
+- **Cross-service consistency** - Same policy engine for all services
+- **Permission drift** - Real GCP permission names
+
+This stack tests **actual control plane behavior**.
+
+---
+
+## Docker Compose (Manual)
+
+If you prefer direct orchestration:
+
+```bash
+docker compose up -d   # Start stack
+docker compose logs    # View logs
+docker compose down    # Stop stack
+```
+
+The CLI wraps these commands with policy validation, status checks, and unified logging.
+
+---
+
+## Policy Packs
+
+Ready-made role definitions in `packs/`:
+
+```bash
+# Copy Secret Manager roles
+cat packs/secretmanager.yaml >> policy.yaml
+
+# Copy KMS roles
+cat packs/kms.yaml >> policy.yaml
+
+# Copy CI patterns
+cat packs/ci.yaml >> policy.yaml
+```
+
+See [Policy Reference](docs/POLICY_REFERENCE.md) for available packs and examples.
+
+---
+
+## Documentation
+
+### Core Docs
+- **[Policy Reference](docs/POLICY_REFERENCE.md)** - Complete policy syntax, conditions, permissions, examples
+- **[CI Integration](docs/CI_INTEGRATION.md)** - GitHub Actions, GitLab, CircleCI, Jenkins examples
+- **[Architecture](docs/ARCHITECTURE.md)** - Control plane design, request flow, authorization model
+
+### Additional Resources
+- **[Integration Contract](docs/INTEGRATION_CONTRACT.md)** - Contract for building new emulators
+- **[CLI Design](docs/CLI_DESIGN.md)** - CLI implementation and Viper pattern
+- **[End-to-End Tutorial](docs/END_TO_END_TUTORIAL.md)** - Complete usage walkthrough
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Migration Guide](docs/MIGRATION.md)** - Migrating from standalone emulators
+
+---
+
+## Example: Conditional Access
+
+Restrict CI to production secrets only:
 
 ```yaml
-- name: Start emulators
-  run: docker compose up -d
+roles:
+  roles/custom.ciRunner:
+    permissions:
+      - secretmanager.secrets.get
+      - secretmanager.versions.access
 
-- name: Run tests
-  run: go test ./...
-
-- name: Stop emulators
-  run: docker compose down
+projects:
+  test-project:
+    bindings:
+      - role: roles/custom.ciRunner
+        members:
+          - serviceAccount:ci@test-project.iam.gserviceaccount.com
+        condition:
+          expression: 'resource.name.startsWith("projects/test-project/secrets/prod-")'
+          title: "CI limited to production secrets"
 ```
+
+Now CI can only access secrets starting with `prod-`:
+- ✓ `projects/test-project/secrets/prod-db-password` - Allowed
+- ✗ `projects/test-project/secrets/dev-api-key` - Denied (403)
+
+See [Policy Reference](docs/POLICY_REFERENCE.md) for CEL condition syntax.
+
+---
+
+## Compatibility
+
+IAM enforcement is **opt-in**. Default behavior matches standalone emulators:
+- `IAM_MODE=off` - All requests succeed (legacy behavior)
+- `IAM_MODE=permissive` - IAM enabled, fail-open on errors
+- `IAM_MODE=strict` - IAM enabled, fail-closed
+
+Non-breaking by design.
 
 ---
 
 ## Disclaimer
 
-This project is not affiliated with, endorsed by, or sponsored by Google LLC.
-"Google Cloud", "GCP", "IAM", and related trademarks are property of Google LLC.
+This project is not affiliated with, endorsed by, or sponsored by Google LLC. "Google Cloud", "GCP", "IAM", and related trademarks are property of Google LLC.
 
 ---
 
 ## Maintained By
 
-Maintained by **Dayna Blackwell** — founder of Blackwell Systems.
+**Dayna Blackwell** — Founder, Blackwell Systems
 
 - GitHub: [https://github.com/blackwell-systems](https://github.com/blackwell-systems)
 - Blog: [https://blog.blackwell-systems.com](https://blog.blackwell-systems.com)
