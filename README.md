@@ -15,7 +15,7 @@ Unified CLI (`gcp-emulator`) for managing GCP emulators with production-like IAM
 
 ## Why This Exists
 
-Most GCP emulators implement CRUD operations but skip authorization.
+Most GCP emulators implement CRUD operations but skip authorization entirely, or implement it ad-hoc per service. This project centralizes authorization into a single control plane, so every emulator enforces the same policy engine the same way.
 
 In production GCP, **IAM is the control plane**:
 - Every request is authorized against policy
