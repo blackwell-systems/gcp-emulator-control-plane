@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Enhanced README with hermetic seal narrative and Authorization Tracing section
+  - Explains why GCP hermetic testing was previously impossible
+  - Contrasts deterministic IAM (0ms) vs real GCP IAM (1-60s propagation)
+  - Documents IAM_TRACE_OUTPUT for cross-stack authorization debugging
+  - CI/CD compliance examples with GitHub Actions
+
 ## [0.1.2] - 2026-01-27
 
 ### Added
