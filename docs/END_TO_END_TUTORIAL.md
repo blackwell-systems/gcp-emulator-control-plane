@@ -64,8 +64,8 @@ The GCP emulator control plane consists of three layers:
 ### Step 1: Clone the Control Plane Repository
 
 ```bash
-git clone https://github.com/blackwell-systems/gcp-emulator-control-plane.git
-cd gcp-emulator-control-plane
+git clone https://github.com/blackwell-systems/gcp-iam-control-plane.git
+cd gcp-iam-control-plane
 ```
 
 ### Step 2: Review the Default Policy
@@ -573,7 +573,7 @@ jobs:
     
     services:
       emulators:
-        image: ghcr.io/blackwell-systems/gcp-emulator-control-plane:latest
+        image: ghcr.io/blackwell-systems/gcp-iam-control-plane:latest
         ports:
           - 8080:8080  # IAM
           - 9090:9090  # Secret Manager gRPC

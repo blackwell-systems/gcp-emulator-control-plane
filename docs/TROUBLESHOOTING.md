@@ -702,10 +702,10 @@ exit
 docker network ls
 
 # Inspect control plane network
-docker network inspect gcp-emulator-control-plane_default
+docker network inspect gcp-iam-control-plane_default
 
 # See which containers are connected
-docker network inspect gcp-emulator-control-plane_default | jq '.[0].Containers'
+docker network inspect gcp-iam-control-plane_default | jq '.[0].Containers'
 ```
 
 ---
@@ -865,7 +865,7 @@ If you've tried troubleshooting and still have issues:
    - [Integration Contract](INTEGRATION_CONTRACT.md)
 
 3. **Search existing issues:**
-   - [Control Plane Issues](https://github.com/blackwell-systems/gcp-emulator-control-plane/issues)
+   - [Control Plane Issues](https://github.com/blackwell-systems/gcp-iam-control-plane/issues)
    - [IAM Emulator Issues](https://github.com/blackwell-systems/gcp-iam-emulator/issues)
    - [Secret Manager Issues](https://github.com/blackwell-systems/gcp-secret-manager-emulator/issues)
 

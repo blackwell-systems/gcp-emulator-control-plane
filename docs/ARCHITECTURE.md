@@ -31,8 +31,8 @@ The GCP Emulator Control Plane is composed of **5 repositories** working togethe
 │                     Repository Ecosystem Overview                          │
 │                                                                            │
 │  ┌──────────────────────────────────────────────────────────────────────┐ │
-│  │  1. gcp-emulator-control-plane (THIS REPO)                           │ │
-│  │     https://github.com/blackwell-systems/gcp-emulator-control-plane  │ │
+│  │  1. gcp-iam-control-plane (THIS REPO)                           │ │
+│  │     https://github.com/blackwell-systems/gcp-iam-control-plane  │ │
 │  │                                                                       │ │
 │  │  Purpose: Orchestration layer for entire emulator ecosystem          │ │
 │  │  Language: Go                                                         │ │
@@ -172,7 +172,7 @@ The GCP Emulator Control Plane is composed of **5 repositories** working togethe
 ### Repository Dependency Graph
 
 ```
-gcp-emulator-control-plane (orchestration)
+gcp-iam-control-plane (orchestration)
     │
     ├─ docker-compose.yml orchestrates ──────┐
     │                                         │
@@ -196,7 +196,7 @@ gcp-iam-emulator                    gcp-secret-manager-emulator
 ### Repository Relationships
 
 **Control Plane (orchestration repo):**
-- `gcp-emulator-control-plane` - CLI, docker-compose, policy.yaml, documentation
+- `gcp-iam-control-plane` - CLI, docker-compose, policy.yaml, documentation
 
 **Control Plane (authorization engine):**
 - `gcp-iam-emulator` - Standalone authorization service, no dependencies on data plane

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/blackwell-systems/gcp-emulator-control-plane/internal/config"
+	"github.com/blackwell-systems/gcp-iam-control-plane/internal/config"
 )
 
 // ServiceStatus represents the status of a service

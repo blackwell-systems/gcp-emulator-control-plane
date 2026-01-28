@@ -82,8 +82,8 @@ This guide helps you migrate from standalone GCP emulators (without IAM) to the 
 #### Day 1 Morning: Deploy Control Plane
 ```bash
 # Clone control plane
-git clone https://github.com/blackwell-systems/gcp-emulator-control-plane.git
-cd gcp-emulator-control-plane
+git clone https://github.com/blackwell-systems/gcp-iam-control-plane.git
+cd gcp-iam-control-plane
 
 # Start with IAM disabled
 docker compose up -d
@@ -267,8 +267,8 @@ Repeat step 4 until all tests pass with `IAM_MODE=strict`.
 
 1. **Clone repo**
    ```bash
-   git clone https://github.com/blackwell-systems/gcp-emulator-control-plane.git
-   cd gcp-emulator-control-plane
+   git clone https://github.com/blackwell-systems/gcp-iam-control-plane.git
+   cd gcp-iam-control-plane
    ```
 
 2. **Start stack (IAM disabled)**
@@ -309,12 +309,12 @@ Repeat step 4 until all tests pass with `IAM_MODE=strict`.
 
 2. **Copy to control plane**
    ```bash
-   cp policy-permissive.yaml gcp-emulator-control-plane/policy.yaml
+   cp policy-permissive.yaml gcp-iam-control-plane/policy.yaml
    ```
 
 3. **Restart IAM emulator**
    ```bash
-   cd gcp-emulator-control-plane
+   cd gcp-iam-control-plane
    docker compose restart iam
    ```
 
@@ -585,7 +585,7 @@ If migration causes issues, you can roll back safely:
 **Switch back to standalone emulators:**
 ```bash
 # Stop control plane
-cd gcp-emulator-control-plane
+cd gcp-iam-control-plane
 docker compose down
 
 # Start standalone Secret Manager

@@ -4,8 +4,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	"github.com/blackwell-systems/gcp-emulator-control-plane/internal/config"
-	"github.com/blackwell-systems/gcp-emulator-control-plane/internal/docker"
+	"github.com/blackwell-systems/gcp-iam-control-plane/internal/config"
+	"github.com/blackwell-systems/gcp-iam-control-plane/internal/docker"
 )
 
 var restartCmd = &cobra.Command{

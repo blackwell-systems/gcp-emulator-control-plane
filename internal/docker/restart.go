@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/blackwell-systems/gcp-emulator-control-plane/internal/config"
+	"github.com/blackwell-systems/gcp-iam-control-plane/internal/config"
 )
 
 // Restart restarts the stack or a specific service

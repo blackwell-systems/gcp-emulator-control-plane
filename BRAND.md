@@ -48,6 +48,6 @@ The **brand** (name, logo, visual identity) is separately protected and not cove
 
 ## Questions
 
-For brand usage questions or permission requests, open an [issue](https://github.com/blackwell-systems/gcp-emulator-control-plane/issues) or contact the maintainer.
+For brand usage questions or permission requests, open an [issue](https://github.com/blackwell-systems/gcp-iam-control-plane/issues) or contact the maintainer.
 
 *Last updated: 2025*

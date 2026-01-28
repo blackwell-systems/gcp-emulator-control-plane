@@ -161,8 +161,8 @@ package cli
 import (
     "github.com/spf13/cobra"
     "github.com/spf13/viper"
-    "github.com/blackwell-systems/gcp-emulator-control-plane/internal/config"
-    "github.com/blackwell-systems/gcp-emulator-control-plane/internal/docker"
+    "github.com/blackwell-systems/gcp-iam-control-plane/internal/config"
+    "github.com/blackwell-systems/gcp-iam-control-plane/internal/docker"
 )
 
 var startCmd = &cobra.Command{
@@ -201,7 +201,7 @@ func init() {
 package docker
 
 import (
-    "github.com/blackwell-systems/gcp-emulator-control-plane/internal/config"
+    "github.com/blackwell-systems/gcp-iam-control-plane/internal/config"
 )
 
 // Start starts the docker compose stack

@@ -1,34 +1,78 @@
-# GCP Emulator Control Plane
+# GCP IAM Control Plane
 
 [![Blackwell Systems](https://raw.githubusercontent.com/blackwell-systems/blackwell-docs-theme/main/badge-trademark.svg)](https://github.com/blackwell-systems)
-[![Go Reference](https://pkg.go.dev/badge/github.com/blackwell-systems/gcp-emulator-control-plane.svg)](https://pkg.go.dev/github.com/blackwell-systems/gcp-emulator-control-plane)
+[![Go Reference](https://pkg.go.dev/badge/github.com/blackwell-systems/gcp-iam-control-plane.svg)](https://pkg.go.dev/github.com/blackwell-systems/gcp-iam-control-plane)
 [![Go Version](https://img.shields.io/badge/go-1.24+-blue.svg)](https://go.dev/)
-[![Test Status](https://github.com/blackwell-systems/gcp-emulator-control-plane/workflows/Test/badge.svg)](https://github.com/blackwell-systems/gcp-emulator-control-plane/actions)
-[![Version](https://img.shields.io/github/v/release/blackwell-systems/gcp-emulator-control-plane)](https://github.com/blackwell-systems/gcp-emulator-control-plane/releases)
+[![Test Status](https://github.com/blackwell-systems/gcp-iam-control-plane/workflows/Test/badge.svg)](https://github.com/blackwell-systems/gcp-iam-control-plane/actions)
+[![Version](https://img.shields.io/github/v/release/blackwell-systems/gcp-iam-control-plane)](https://github.com/blackwell-systems/gcp-iam-control-plane/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-> **If you're testing GCP emulators without IAM, you're not testing production behavior.**
+> **Enforce real GCP IAM policies in local development and CI** — Make your emulators fail exactly like production would.
 
-Unified CLI (`gcp-emulator`) for managing GCP emulators with production-like IAM enforcement. Start/stop services, manage policies, view logs, and test authorization—all without docker-compose knowledge or GCP credentials.
+Orchestrates the **Local IAM Control Plane** — a CLI (`gcp-emulator`) that manages GCP service emulators with pre-flight IAM enforcement. Start/stop services, manage policies, and test authorization without cloud credentials or docker-compose knowledge.
+
+---
+
+## What This Is
+
+Unlike mocks (which allow everything) or observers like iamlive (which record after the fact), the **Blackwell IAM Control Plane** actively denies unauthorized requests before they reach emulators.
+
+| Approach | Example | When | Behavior |
+|----------|---------|------|----------|
+| Mock | Standard emulators | Never | Always allows |
+| Observer | iamlive (AWS) | After | Records what you used |
+| **Control Plane** | **Blackwell IAM** | **Before** | **Denies unauthorized** |
+
+**Key insight:** Pre-flight enforcement catches permission bugs in development and CI, not production.
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────┐
+│  Your Application Code                  │
+│  (GCP client libraries)                 │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│  DATA PLANES (Started by this CLI)     │
+│  • Secret Manager Emulator              │
+│  • KMS Emulator                         │
+│  • (Future: Tasks, Pub/Sub, Storage)    │
+│                                         │
+│  Each checks IAM before data access     │
+└────────────────┬────────────────────────┘
+                 │
+                 │ CheckPermission(principal, resource, permission)
+                 ▼
+┌─────────────────────────────────────────┐
+│  CONTROL PLANE (Policy Engine)          │
+│  IAM Emulator                           │
+│                                         │
+│  - Role bindings                        │
+│  - Group memberships                    │
+│  - Policy inheritance                   │
+│  - Deterministic evaluation             │
+└─────────────────────────────────────────┘
+```
+
+This CLI orchestrates both layers, ensuring consistent IAM enforcement across all services.
+
+See the [category definition](https://github.com/blackwell-systems/gcp-emulator-auth/blob/master/CATEGORY.md) for complete architectural context.
 
 ---
 
 ## Why This Exists
 
-Most GCP emulators implement CRUD operations but skip authorization entirely, or implement it ad-hoc per service. This project centralizes authorization into a single control plane, so every emulator enforces the same policy engine the same way.
-
-In production GCP, **IAM is the control plane**:
-- Every request is authorized against policy
-- Conditions restrict access (resource patterns, time, etc.)
-- Policies enforce the principle of least privilege
-
-Without IAM testing, you miss:
+Most GCP emulators skip authorization entirely. Without IAM testing, you discover permission bugs **after deployment**:
 - Incorrect role assignments
-- Missing permissions
+- Missing permissions  
 - Wrong principal identity
 - Policies that work in dev but fail in prod
 
-**This control plane makes IAM enforcement testable and deterministic, locally and in CI.**
+**This control plane makes IAM enforcement testable and deterministic**, locally and in CI.
 
 ---
 
@@ -48,7 +92,7 @@ Without IAM testing, you miss:
 ### Install
 
 ```bash
-go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest
 ```
 
 ### Start the Stack
@@ -173,7 +217,7 @@ See [CLI Design](docs/CLI_DESIGN.md) for complete command reference.
 
 ```yaml
 - name: Install CLI
-  run: go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+  run: go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest
 
 - name: Start emulators (strict mode)
   run: gcp-emulator start --mode=strict

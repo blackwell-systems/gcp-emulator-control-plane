@@ -739,7 +739,7 @@ Build:
 ## Project Structure
 
 ```
-gcp-emulator-control-plane/
+gcp-iam-control-plane/
 ├── cmd/
 │   └── gcp-emulator/
 │       └── main.go              # CLI entry point
@@ -1002,21 +1002,21 @@ gcp-emulator completion fish > ~/.config/fish/completions/gcp-emulator.fish
 
 **From source:**
 ```bash
-cd gcp-emulator-control-plane
+cd gcp-iam-control-plane
 go install ./cmd/gcp-emulator
 ```
 
 **From release:**
 ```bash
 # Download from GitHub releases
-curl -LO https://github.com/blackwell-systems/gcp-emulator-control-plane/releases/download/v0.1.0/gcp-emulator_linux_amd64
+curl -LO https://github.com/blackwell-systems/gcp-iam-control-plane/releases/download/v0.1.0/gcp-emulator_linux_amd64
 chmod +x gcp-emulator_linux_amd64
 mv gcp-emulator_linux_amd64 /usr/local/bin/gcp-emulator
 ```
 
 **Using Go install:**
 ```bash
-go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest
 ```
 
 ---

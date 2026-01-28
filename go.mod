@@ -1,4 +1,4 @@
-module github.com/blackwell-systems/gcp-emulator-control-plane
+module github.com/blackwell-systems/gcp-iam-control-plane
 
 go 1.24.0
 

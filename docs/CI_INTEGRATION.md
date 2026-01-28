@@ -25,7 +25,7 @@ Complete guide for integrating the GCP Emulator Control Plane into CI/CD pipelin
 
 ```yaml
 - name: Install gcp-emulator
-  run: go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+  run: go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest
 
 - name: Start emulator stack
   run: gcp-emulator start --mode=strict
@@ -64,7 +64,7 @@ jobs:
           go-version: '1.21'
 
       - name: Install gcp-emulator CLI
-        run: go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+        run: go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest
 
       - name: Start emulator stack
         run: gcp-emulator start --mode=strict
@@ -161,7 +161,7 @@ test:
     DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   
   before_script:
-    - go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+    - go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest
   
   script:
     - gcp-emulator start --mode=strict
@@ -185,7 +185,7 @@ validate-policy:
   stage: validate
   image: golang:1.21
   script:
-    - go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+    - go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest
     - gcp-emulator policy validate policy.yaml
 
 integration-test:
@@ -194,7 +194,7 @@ integration-test:
   services:
     - docker:dind
   script:
-    - go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+    - go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest
     - gcp-emulator start --mode=strict
     - go test -v ./...
   artifacts:
@@ -242,7 +242,7 @@ jobs:
       
       - run:
           name: Install gcp-emulator
-          command: go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+          command: go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest
       
       - run:
           name: Start emulator stack
@@ -284,7 +284,7 @@ jobs:
       
       - run:
           name: Install gcp-emulator
-          command: go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
+          command: go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest
       
       - run:
           name: Start emulators
@@ -319,7 +319,7 @@ pipeline {
     stages {
         stage('Install CLI') {
             steps {
-                sh 'go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest'
+                sh 'go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest'
             }
         }
         
@@ -364,7 +364,7 @@ node {
         }
         
         stage('Install CLI') {
-            sh 'go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest'
+            sh 'go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest'
         }
         
         stage('Start Emulators') {
@@ -673,7 +673,7 @@ Test that your app respects IAM boundaries:
 - name: Test IAM connectivity
   run: |
     curl -v http://localhost:8080/health
-    docker network inspect gcp-emulator-control-plane_default
+    docker network inspect gcp-iam-control-plane_default
 ```
 
 **Solution:**
