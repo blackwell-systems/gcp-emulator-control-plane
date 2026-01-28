@@ -437,15 +437,6 @@ Start simple: copy/paste into your `policy.yaml`.
 
 ---
 
-## Roadmap
-
-- Add more policy examples and end-to-end tutorials
-- Publish "known good" policy templates for common stacks
-- Add additional emulators following the contract (Pub/Sub, Storage, etc.)
-- Provide an integration test harness repo for emulator authors
-
----
-
 ## Disclaimer
 
 This project is not affiliated with, endorsed by, or sponsored by Google LLC.
