@@ -12,7 +12,7 @@
 
 > One policy file. One principal injection method. Consistent authorization across all emulators.
 
-**GCP Emulator Control Plane** is the orchestration repo for the Blackwell Systems local GCP emulator ecosystem.
+**GCP Emulator Control Plane** provides a unified CLI (`gcp-emulator`) for managing the complete GCP emulator ecosystem with production-like IAM enforcement. Start/stop services, manage policies, view logs, and test authorization - all without docker-compose knowledge or GCP credentials.
 
 ## Ecosystem Components
 
@@ -34,11 +34,16 @@ Each emulator follows the [Integration Contract](docs/INTEGRATION_CONTRACT.md):
 
 Future emulators (Cloud Storage, Pub/Sub, etc.) will follow the same contract
 
-This repo provides the **control plane glue**:
-- **`gcp-emulator` CLI** - Single command to manage the entire stack
-- `docker compose` orchestration for direct usage
-- Single `policy.yaml` that drives authorization everywhere
-- Stable **integration contract** (resource naming + permissions + principal propagation)
+The `gcp-emulator` CLI provides:
+- **Unified management** - Single command to start/stop/restart the entire stack
+- **Policy management** - Validate, initialize, and test your `policy.yaml` authorization rules
+- **Log aggregation** - View logs from all services or specific emulators
+- **Configuration control** - Set IAM modes (off/permissive/strict) and emulator endpoints
+- **No docker-compose knowledge required** - Simple commands, complex orchestration underneath
+
+Also includes:
+- Direct `docker compose` orchestration if you prefer manual control
+- Stable **integration contract** for building new emulators (resource naming + permissions + principal propagation)
 - End-to-end examples and integration tests that mirror production IAM behavior
 
 ---
@@ -64,8 +69,11 @@ If your tests don't exercise authorization, you miss an entire class of producti
 
 ## What You Get
 
+### Unified CLI
+Single command to manage the entire stack - no docker-compose knowledge required. Start/stop services, validate policies, view logs, and control IAM modes from one tool.
+
 ### One policy file (offline, deterministic)
-Define your authorization universe once in `policy.yaml`.
+Define your authorization universe once in `policy.yaml`. All emulators enforce the same policy engine, the same way.
 
 ### One identity channel end-to-end
 Inject a principal consistently:
@@ -75,48 +83,37 @@ Inject a principal consistently:
 That identity is propagated from emulator → IAM emulator without rewriting your app code.
 
 ### Cross-service authorization
-Secret Manager and KMS enforce the same policy engine, the same way.
+Secret Manager and KMS enforce the same policy engine, with consistent permission checking across all emulators.
 
 ### CI-friendly and hermetic
-No network calls, no cloud credentials required.
-
-### Unified CLI
-Single command to manage the entire stack - no docker-compose knowledge required.
+No network calls, no cloud credentials required. Deterministic authorization testing in CI pipelines.
 
 ---
 
 ## Quickstart
 
-### Option 1: Using the CLI (Recommended)
+### 1) Install the CLI (Recommended)
 
-**Install:**
 ```bash
 go install github.com/blackwell-systems/gcp-emulator-control-plane/cmd/gcp-emulator@latest
 ```
 
-**Start the stack:**
+**Alternative:** Use `docker compose` directly if you prefer manual orchestration (see [Docker Compose Usage](#docker-compose-usage) below).
+
+### 2) Start the stack
+
 ```bash
 gcp-emulator start
 ```
 
-**Check status:**
-```bash
-gcp-emulator status
-```
-
-You now have:
+This starts:
 - IAM Emulator: `localhost:8080` (gRPC)
 - Secret Manager Emulator: `localhost:9090` (gRPC), `localhost:8081` (HTTP)
 - KMS Emulator: `localhost:9091` (gRPC), `localhost:8082` (HTTP)
 
-### Option 2: Using Docker Compose Directly
-
-**Prerequisites:**
-- Docker + Docker Compose
-
-**Start the stack:**
+**Check status:**
 ```bash
-docker compose up
+gcp-emulator status
 ```
 
 ### 3) Configure policy
@@ -181,6 +178,34 @@ gcp-emulator logs iam
 # Or with docker-compose
 docker compose logs iam
 ```
+
+---
+
+## Docker Compose Usage
+
+If you prefer manual orchestration without the CLI:
+
+**Prerequisites:**
+- Docker + Docker Compose
+
+**Start the stack:**
+```bash
+docker compose up -d
+```
+
+**View logs:**
+```bash
+docker compose logs iam          # IAM emulator
+docker compose logs secretmanager # Secret Manager
+docker compose logs kms          # KMS
+```
+
+**Stop the stack:**
+```bash
+docker compose down
+```
+
+The `gcp-emulator` CLI wraps these commands with policy validation, status checks, and unified log viewing.
 
 ---
 
@@ -347,7 +372,7 @@ Start simple: copy/paste into your `policy.yaml`.
 
 ## CI Usage
 
-### Using the CLI in CI
+### Recommended: Using the CLI
 
 ```yaml
 - name: Install gcp-emulator CLI
@@ -367,7 +392,7 @@ Start simple: copy/paste into your `policy.yaml`.
   run: gcp-emulator stop
 ```
 
-### Using Docker Compose in CI
+### Alternative: Using Docker Compose directly
 
 ```yaml
 - name: Start emulators
