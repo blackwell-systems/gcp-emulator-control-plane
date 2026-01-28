@@ -12,9 +12,9 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("gcp-emulator version %s\n", cmd.Root().Version)
 		fmt.Println("\nComponents:")
-		fmt.Println("  IAM Emulator:      v0.5.0")
-		fmt.Println("  Secret Manager:    v1.2.0")
-		fmt.Println("  KMS:               v0.2.0")
-		fmt.Println("  gcp-emulator-auth: v0.1.1")
+		fmt.Println("  IAM Emulator:      v0.8.0")
+		fmt.Println("  Secret Manager:    v1.3.0")
+		fmt.Println("  KMS:               v0.3.0")
+		fmt.Println("  gcp-emulator-auth: v0.3.0")
 	},
 }
