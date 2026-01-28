@@ -73,7 +73,7 @@ If your tests don't exercise authorization, you miss an entire class of producti
 Single command to manage the entire stack - no docker-compose knowledge required. Start/stop services, validate policies, view logs, and control IAM modes from one tool.
 
 ### One policy file (offline, deterministic)
-Define your authorization universe once in `policy.yaml`. All emulators enforce the same policy engine, the same way.
+Define your authorization universe once in `policy.yaml` or `policy.json` (both formats supported). All emulators enforce the same policy engine, the same way. Use JSON to test with actual GCP policies exported from production.
 
 ### One identity channel end-to-end
 Inject a principal consistently:
@@ -118,7 +118,9 @@ gcp-emulator status
 
 ### 3) Configure policy
 
-Edit `policy.yaml`:
+**Supports both YAML and JSON formats** (detected by file extension).
+
+Edit `policy.yaml` (or `policy.json`):
 
 ```yaml
 roles:
@@ -178,6 +180,34 @@ gcp-emulator logs iam
 # Or with docker-compose
 docker compose logs iam
 ```
+
+---
+
+## Testing with Production Policies
+
+Test your app with actual production IAM policies, locally and in CI.
+
+Stop hand-writing test policies that drift from production. Export your real GCP IAM policy and test against it:
+
+```bash
+# Export your production IAM policy
+gcloud projects get-iam-policy my-prod-project --format=json > prod-policy.json
+
+# Test locally with production permissions
+gcp-emulator start --policy-file=prod-policy.json
+go test ./...
+
+# Find permission issues before deploying
+gcp-emulator logs iam | grep DENY
+```
+
+**Why this matters:**
+- Test with the exact IAM policy running in production
+- Catch permission issues in CI, not in production  
+- No policy drift between test and prod environments
+- Works with policies exported from Terraform, CDK, or GCP Console
+
+Both YAML and JSON formats are supported. JSON format matches GCP's native IAM policy structure exactly.
 
 ---
 
@@ -310,8 +340,8 @@ gcp-emulator logs [service] [--follow]
 
 **Policy management:**
 ```bash
-gcp-emulator policy validate [file]
-gcp-emulator policy init [--template=basic|advanced|ci]
+gcp-emulator policy validate [file]           # Supports .yaml, .yml, and .json
+gcp-emulator policy init [--template=basic|advanced|ci] [--output=policy.yaml|policy.json]
 ```
 
 **Configuration:**

@@ -1,0 +1,32 @@
+roles:
+  roles/custom.ciRunner:
+    permissions:
+      - secretmanager.secrets.get
+      - secretmanager.versions.access
+      - cloudkms.cryptoKeys.encrypt
+
+  roles/custom.developer:
+    permissions:
+      - secretmanager.secrets.get
+      - secretmanager.versions.access
+      - cloudkms.cryptoKeys.get
+
+groups:
+  developers:
+    members:
+      - user:alice@example.com
+      - user:bob@example.com
+
+projects:
+  test-project:
+    bindings:
+      - role: roles/custom.developer
+        members:
+          - group:developers
+
+      - role: roles/custom.ciRunner
+        members:
+          - serviceAccount:ci@test-project.iam.gserviceaccount.com
+        condition:
+          expression: 'resource.name.startsWith("projects/test-project/secrets/prod-")'
+          title: "CI limited to production secrets"
