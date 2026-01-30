@@ -476,6 +476,29 @@ See [Policy Reference](docs/POLICY_REFERENCE.md) for CEL condition syntax.
 
 ---
 
+## FAQ: IAM Scope and Coverage
+
+### Why Doesn't the Control Plane Emulate All of GCP IAM? (On Purpose)
+
+The IAM control plane is deliberately scoped for **authorization testing**, not comprehensive IAM replication. The underlying IAM emulator models a small set of built-in roles (primitives + Secret Manager + KMS) plus unlimited custom role definitions to catch the bugs that actually break production: missing permissions, wrong role assignments, and misconfigured principals. This curated-first approach catches 95% of real-world authorization bugs while maintaining hermetic execution (no GCP credentials required), deterministic behavior (0ms propagation delay vs 1-60s in real GCP), and zero maintenance burden from tracking GCP's evolving role catalog. If you need to test additional GCP services or permissions, define them explicitly in `policy.yaml` as custom roles — this explicit approach is simpler, more reliable, and avoids the catalog staleness problem that plagues comprehensive IAM emulation. We optimize for **authorization failures that matter**, not theoretical IAM completeness.
+
+### Do I need to define every GCP role in policy.yaml?
+
+No. Define only the permissions your tests actually exercise. Start with the built-in roles (primitives, Secret Manager, KMS), then add custom roles as needed. This keeps your test policies explicit and maintainable.
+
+### Can I test with production IAM policies?
+
+Yes! Export your production policy with `gcloud projects get-iam-policy` and use it directly:
+
+```bash
+gcloud projects get-iam-policy my-prod-project --format=json > prod-policy.json
+gcp-emulator start --policy-file=prod-policy.json --mode=strict
+```
+
+This tests your code against real production permissions without network calls or credentials.
+
+---
+
 ## Compatibility
 
 IAM enforcement is **opt-in**. Default behavior matches standalone emulators:
