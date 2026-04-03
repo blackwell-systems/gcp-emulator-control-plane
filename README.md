@@ -1,5 +1,13 @@
 # GCP IAM Control Plane
 
+> **DEPRECATED** — This repository has been superseded by [**gcp-emulator**](https://github.com/blackwell-systems/gcp-emulator), which composes all Blackwell GCP emulators (IAM, Secret Manager, KMS, Eventarc) into a single process on one gRPC port. The unified emulator provides the same IAM enforcement, policy management, and CLI features — plus in-process composition (no docker-compose), a unified grpc-gateway REST layer, and a single Docker image.
+>
+> **Migration:** Replace `go install github.com/blackwell-systems/gcp-iam-control-plane/cmd/gcp-emulator@latest` with `go install github.com/blackwell-systems/gcp-emulator/cmd/gcp-emulator@latest`. See the [gcp-emulator README](https://github.com/blackwell-systems/gcp-emulator#readme) for updated CLI flags and configuration.
+>
+> This repository is archived and will receive no further updates.
+
+---
+
 [![Blackwell Systems](https://raw.githubusercontent.com/blackwell-systems/blackwell-docs-theme/main/badge-trademark.svg)](https://github.com/blackwell-systems)
 [![Go Reference](https://pkg.go.dev/badge/github.com/blackwell-systems/gcp-iam-control-plane.svg)](https://pkg.go.dev/github.com/blackwell-systems/gcp-iam-control-plane)
 [![Go Version](https://img.shields.io/badge/go-1.24+-blue.svg)](https://go.dev/)
